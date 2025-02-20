@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package ms.apifront.v1;
+
+option go_package = "wakabaseisei/ms-protobuf/gen/go/ms/apifront/v1;apifrontv1";
+
+message GreetRequest {
+  string name = 1;
+}
+
+message GreetResponse {
+  string greeting = 1;
+}
+
+service GreetService {
+  rpc Greet(GreetRequest) returns (GreetResponse) {}
+}
