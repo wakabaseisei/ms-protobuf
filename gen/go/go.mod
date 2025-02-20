@@ -1,4 +1,4 @@
-module wakabaseisei/ms-protobuf/gen/go
+module github.com/wakabaseisei/ms-protobuf/gen/go
 
 go 1.24.0
 

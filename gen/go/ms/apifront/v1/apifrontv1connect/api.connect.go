@@ -8,9 +8,9 @@ import (
 	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
+	v1 "github.com/wakabaseisei/ms-protobuf/gen/go/ms/apifront/v1"
 	http "net/http"
 	strings "strings"
-	v1 "wakabaseisei/ms-protobuf/gen/go/ms/apifront/v1"
 )
 
 // This is a compile-time assertion to ensure that this generated file and the connect package are
