@@ -4,14 +4,19 @@ package ms.apifront.v1;
 
 option go_package = "github.com/wakabaseisei/ms-protobuf/gen/go/ms/apifront/v1;apifrontv1";
 
+service GreetService {
+  rpc Ping(PingRequest) returns (PingResponse) {}
+  rpc Greet(GreetRequest) returns (GreetResponse) {}
+}
+
+message PingRequest {}
+
+message PingResponse {}
+
 message GreetRequest {
   string name = 1;
 }
 
 message GreetResponse {
   string greeting = 1;
-}
-
-service GreetService {
-  rpc Greet(GreetRequest) returns (GreetResponse) {}
 }

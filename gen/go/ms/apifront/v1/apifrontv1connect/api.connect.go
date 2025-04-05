@@ -5,9 +5,9 @@
 package apifrontv1connect
 
 import (
-	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
+	connect_go "github.com/bufbuild/connect-go"
 	v1 "github.com/wakabaseisei/ms-protobuf/gen/go/ms/apifront/v1"
 	http "net/http"
 	strings "strings"
@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion1_13_0
+const _ = connect_go.IsAtLeastVersion0_1_0
 
 const (
 	// GreetServiceName is the fully-qualified name of the GreetService service.
@@ -33,13 +33,16 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// GreetServicePingProcedure is the fully-qualified name of the GreetService's Ping RPC.
+	GreetServicePingProcedure = "/ms.apifront.v1.GreetService/Ping"
 	// GreetServiceGreetProcedure is the fully-qualified name of the GreetService's Greet RPC.
 	GreetServiceGreetProcedure = "/ms.apifront.v1.GreetService/Greet"
 )
 
 // GreetServiceClient is a client for the ms.apifront.v1.GreetService service.
 type GreetServiceClient interface {
-	Greet(context.Context, *connect.Request[v1.GreetRequest]) (*connect.Response[v1.GreetResponse], error)
+	Ping(context.Context, *connect_go.Request[v1.PingRequest]) (*connect_go.Response[v1.PingResponse], error)
+	Greet(context.Context, *connect_go.Request[v1.GreetRequest]) (*connect_go.Response[v1.GreetResponse], error)
 }
 
 // NewGreetServiceClient constructs a client for the ms.apifront.v1.GreetService service. By
@@ -49,32 +52,42 @@ type GreetServiceClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewGreetServiceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) GreetServiceClient {
+func NewGreetServiceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) GreetServiceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
-	greetServiceMethods := v1.File_ms_apifront_v1_api_proto.Services().ByName("GreetService").Methods()
 	return &greetServiceClient{
-		greet: connect.NewClient[v1.GreetRequest, v1.GreetResponse](
+		ping: connect_go.NewClient[v1.PingRequest, v1.PingResponse](
+			httpClient,
+			baseURL+GreetServicePingProcedure,
+			opts...,
+		),
+		greet: connect_go.NewClient[v1.GreetRequest, v1.GreetResponse](
 			httpClient,
 			baseURL+GreetServiceGreetProcedure,
-			connect.WithSchema(greetServiceMethods.ByName("Greet")),
-			connect.WithClientOptions(opts...),
+			opts...,
 		),
 	}
 }
 
 // greetServiceClient implements GreetServiceClient.
 type greetServiceClient struct {
-	greet *connect.Client[v1.GreetRequest, v1.GreetResponse]
+	ping  *connect_go.Client[v1.PingRequest, v1.PingResponse]
+	greet *connect_go.Client[v1.GreetRequest, v1.GreetResponse]
+}
+
+// Ping calls ms.apifront.v1.GreetService.Ping.
+func (c *greetServiceClient) Ping(ctx context.Context, req *connect_go.Request[v1.PingRequest]) (*connect_go.Response[v1.PingResponse], error) {
+	return c.ping.CallUnary(ctx, req)
 }
 
 // Greet calls ms.apifront.v1.GreetService.Greet.
-func (c *greetServiceClient) Greet(ctx context.Context, req *connect.Request[v1.GreetRequest]) (*connect.Response[v1.GreetResponse], error) {
+func (c *greetServiceClient) Greet(ctx context.Context, req *connect_go.Request[v1.GreetRequest]) (*connect_go.Response[v1.GreetResponse], error) {
 	return c.greet.CallUnary(ctx, req)
 }
 
 // GreetServiceHandler is an implementation of the ms.apifront.v1.GreetService service.
 type GreetServiceHandler interface {
-	Greet(context.Context, *connect.Request[v1.GreetRequest]) (*connect.Response[v1.GreetResponse], error)
+	Ping(context.Context, *connect_go.Request[v1.PingRequest]) (*connect_go.Response[v1.PingResponse], error)
+	Greet(context.Context, *connect_go.Request[v1.GreetRequest]) (*connect_go.Response[v1.GreetResponse], error)
 }
 
 // NewGreetServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -82,16 +95,21 @@ type GreetServiceHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewGreetServiceHandler(svc GreetServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
-	greetServiceMethods := v1.File_ms_apifront_v1_api_proto.Services().ByName("GreetService").Methods()
-	greetServiceGreetHandler := connect.NewUnaryHandler(
+func NewGreetServiceHandler(svc GreetServiceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
+	greetServicePingHandler := connect_go.NewUnaryHandler(
+		GreetServicePingProcedure,
+		svc.Ping,
+		opts...,
+	)
+	greetServiceGreetHandler := connect_go.NewUnaryHandler(
 		GreetServiceGreetProcedure,
 		svc.Greet,
-		connect.WithSchema(greetServiceMethods.ByName("Greet")),
-		connect.WithHandlerOptions(opts...),
+		opts...,
 	)
 	return "/ms.apifront.v1.GreetService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case GreetServicePingProcedure:
+			greetServicePingHandler.ServeHTTP(w, r)
 		case GreetServiceGreetProcedure:
 			greetServiceGreetHandler.ServeHTTP(w, r)
 		default:
@@ -103,6 +121,10 @@ func NewGreetServiceHandler(svc GreetServiceHandler, opts ...connect.HandlerOpti
 // UnimplementedGreetServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedGreetServiceHandler struct{}
 
-func (UnimplementedGreetServiceHandler) Greet(context.Context, *connect.Request[v1.GreetRequest]) (*connect.Response[v1.GreetResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("ms.apifront.v1.GreetService.Greet is not implemented"))
+func (UnimplementedGreetServiceHandler) Ping(context.Context, *connect_go.Request[v1.PingRequest]) (*connect_go.Response[v1.PingResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("ms.apifront.v1.GreetService.Ping is not implemented"))
+}
+
+func (UnimplementedGreetServiceHandler) Greet(context.Context, *connect_go.Request[v1.GreetRequest]) (*connect_go.Response[v1.GreetResponse], error) {
+	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("ms.apifront.v1.GreetService.Greet is not implemented"))
 }
