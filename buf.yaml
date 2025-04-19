@@ -6,6 +6,10 @@ modules:
 lint:
   use:
     - STANDARD
+  except:
+    - RPC_RESPONSE_STANDARD_NAME
 breaking:
   use:
     - FILE
+deps:
+  - buf.build/googleapis/googleapis

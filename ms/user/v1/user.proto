@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package ms.user.v1;
+
+option go_package = "github.com/wakabaseisei/ms-protobuf/gen/go/ms/user/v1;userv1";
+
+import "google/api/field_behavior.proto";
+import "ms/user/v1/resource.proto";
+
+service UserService {
+  rpc CreateUser(CreateUserRequest) returns (User) {}
+}
+
+message CreateUserRequest {
+  User user = 1 [(google.api.field_behavior) = REQUIRED];
+}
