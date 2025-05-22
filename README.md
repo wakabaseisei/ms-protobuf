@@ -13,8 +13,9 @@
 │ ├── apifront/v1/
 │ │ └── api.proto
 │ └── user/v1/
-│ ├── resource.proto
-│ └── user.proto
+│ │ └── user.proto
+│ │ └── resource.proto
+│ ├── ... # 他サービスのスキーマもここに追加
 ├── buf.yaml
 ├── buf.lock
 └── README.md
