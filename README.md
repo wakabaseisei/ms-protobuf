@@ -12,7 +12,7 @@
 ├── ms/ # サービスごとのスキーマ管理ディレクトリ
 │ ├── apifront/v1/
 │ │ └── api.proto
-│ └── user/v1/
+│ ├── user/v1/
 │ │ └── user.proto
 │ │ └── resource.proto
 │ ├── ... # 他サービスのスキーマもここに追加
